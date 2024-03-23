@@ -102,7 +102,7 @@ func validateRunner(runner *models.Runner) *models.ResponseError {
 	}
 	if runner.LastName == "" {
 		return &models.ResponseError{
-			Message: "Invalid lact name",
+			Message: "Invalid last name",
 			Status:  http.StatusBadRequest,
 		}
 	}
