@@ -13,15 +13,27 @@ import (
 
 type RunnersController struct {
 	runnersService *services.RunnersService
+	usersService   *services.UsersService
 }
 
-func NewRunnersController(runnersService *services.RunnersService) *RunnersController {
+func NewRunnersController(runnersService *services.RunnersService, usersService *services.UsersService) *RunnersController {
 	return &RunnersController{
 		runnersService: runnersService,
+		usersService:   usersService,
 	}
 }
 
 func (rh RunnersController) CreateRunner(ctx *gin.Context) {
+	accessToken := ctx.Request.Header.Get("Token")
+	auth, responseErr := rh.usersService.AuthorizeUser(accessToken, []string{ROLE_ADMIN})
+	if responseErr != nil {
+		ctx.JSON(responseErr.Status, responseErr)
+		return
+	}
+	if !auth {
+		ctx.Status(http.StatusUnauthorized)
+		return
+	}
 	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		log.Println("Error while reading "+"create runner request body", err)
@@ -44,6 +56,16 @@ func (rh RunnersController) CreateRunner(ctx *gin.Context) {
 }
 
 func (rh RunnersController) UpdateRunner(ctx *gin.Context) {
+	accessToken := ctx.Request.Header.Get("Token")
+	auth, responseErr := rh.usersService.AuthorizeUser(accessToken, []string{ROLE_ADMIN})
+	if responseErr != nil {
+		ctx.JSON(responseErr.Status, responseErr)
+		return
+	}
+	if !auth {
+		ctx.Status(http.StatusUnauthorized)
+		return
+	}
 	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		log.Println("Error while reading "+"update runner request body", err)
@@ -57,7 +79,7 @@ func (rh RunnersController) UpdateRunner(ctx *gin.Context) {
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	responseErr := rh.runnersService.UpdateRunner(&runner)
+	responseErr = rh.runnersService.UpdateRunner(&runner)
 	if responseErr != nil {
 		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
 		return
@@ -66,8 +88,18 @@ func (rh RunnersController) UpdateRunner(ctx *gin.Context) {
 }
 
 func (rh RunnersController) DeleteRunner(ctx *gin.Context) {
+	accessToken := ctx.Request.Header.Get("Token")
+	auth, responseErr := rh.usersService.AuthorizeUser(accessToken, []string{ROLE_ADMIN})
+	if responseErr != nil {
+		ctx.JSON(responseErr.Status, responseErr)
+		return
+	}
+	if !auth {
+		ctx.Status(http.StatusUnauthorized)
+		return
+	}
 	runnerId := ctx.Param("id")
-	responseErr := rh.runnersService.DeleteRunner(runnerId)
+	responseErr = rh.runnersService.DeleteRunner(runnerId)
 	if responseErr != nil {
 		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
 		return
@@ -76,6 +108,16 @@ func (rh RunnersController) DeleteRunner(ctx *gin.Context) {
 }
 
 func (rh RunnersController) GetRunner(ctx *gin.Context) {
+	accessToken := ctx.Request.Header.Get("Token")
+	auth, responseErr := rh.usersService.AuthorizeUser(accessToken, []string{ROLE_ADMIN, ROLE_RUNNER})
+	if responseErr != nil {
+		ctx.JSON(responseErr.Status, responseErr)
+		return
+	}
+	if !auth {
+		ctx.Status(http.StatusUnauthorized)
+		return
+	}
 	runnerId := ctx.Param("id")
 	response, responseErr := rh.runnersService.GetRunner(runnerId)
 	if responseErr != nil {
@@ -86,6 +128,16 @@ func (rh RunnersController) GetRunner(ctx *gin.Context) {
 }
 
 func (rh RunnersController) GetRunnersBatch(ctx *gin.Context) {
+	accessToken := ctx.Request.Header.Get("Token")
+	auth, responseErr := rh.usersService.AuthorizeUser(accessToken, []string{ROLE_ADMIN, ROLE_RUNNER})
+	if responseErr != nil {
+		ctx.JSON(responseErr.Status, responseErr)
+		return
+	}
+	if !auth {
+		ctx.Status(http.StatusUnauthorized)
+		return
+	}
 	params := ctx.Request.URL.Query()
 	country := params.Get("country")
 	year := params.Get("year")
