@@ -1,12 +1,14 @@
 package main
 
-import "time"
+import (
+	"log"
+	"runners/config"
+)
 
 func main() {
-	i := 0
-	for i < 10 {
-		println("Hi")
-		i++
-		time.Sleep(time.Second * 5)
+	config, err := config.Init("runners")
+	if err != nil {
+		log.Fatal(err)
 	}
+	log.Println(config)
 }
