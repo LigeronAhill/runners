@@ -1,3 +1,12 @@
 package main
 
-func main() {}
+import "time"
+
+func main() {
+	i := 0
+	for i < 10 {
+		println("Hi")
+		i++
+		time.Sleep(time.Second * 5)
+	}
+}
